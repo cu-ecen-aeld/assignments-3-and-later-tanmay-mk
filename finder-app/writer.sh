@@ -1,5 +1,6 @@
 #1/bin/bash
 
+#
 # file name	: finder.sh
 #
 # Author	: tanmay-mk
