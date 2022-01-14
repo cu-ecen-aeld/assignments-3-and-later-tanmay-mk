@@ -1,5 +1,12 @@
 #1/bin/bash
 
+# file name	: finder.sh
+#
+# Author	: tanmay-mk
+#
+# Date		: 13 January 2022 
+#
+
 #checking for number of arguments entered
 if [ $# -lt 2 ] 
 then
@@ -17,7 +24,9 @@ fi
 writefile=$1
 writestr=$2
 
+#exctract name of file
 name_file="${writefile##*/}"
+#extract name of directory
 name_directory="${writefile%/*}"
 
 
@@ -29,10 +38,18 @@ then
 	mkdir $name_directory
 fi
 
+#create a new file
 touch "$writefile"
 
+#if file is created correctly, write to the file
 if [ -f "$writefile" ]
 then
 	#writing writestr to file created
 	echo "$writestr" > "$writefile"
+else
+	#else print an error message
+	echo Error creating file.
+	exit 1
 fi
+
+## EOF
