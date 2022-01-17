@@ -47,10 +47,11 @@ if [ -f "$writefile" ]
 then
 	#writing writestr to file created
 	echo "$writestr" > "$writefile"
+	exit 0 #successful operation
 else
 	#else print an error message
 	echo Error creating file.
-	exit 1
+	exit 1 #failed operation
 fi
 
 ## EOF

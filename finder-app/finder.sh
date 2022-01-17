@@ -40,6 +40,6 @@ fi
 
 #printing the result
 echo The number of files are $X and the number of matching lines are $Y
-
+exit 0 #successful operation
 ## EOF
 
