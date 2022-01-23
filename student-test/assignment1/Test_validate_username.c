@@ -19,7 +19,12 @@ void test_validate_my_username()
      * config file and my_username() functions are setup properly
      */
     
-
+    const char *username = my_username();
+    char *username_malloc = malloc_username_from_conf_file();
+    
     //TEST_ASSERT_TRUE_MESSAGE(false,"AESD students, please fix me!");
-    TEST_ASSERT_EQUAL_STRING_MESSAGE(my_username(), malloc_username_from_conf_file(), "Username Validation Failed");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(username, username_malloc, "Username Validation Failed");
+    
+    free (username_malloc);
+    
 }

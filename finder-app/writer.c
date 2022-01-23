@@ -65,7 +65,7 @@ static void write_to_file (char* writefile, char* writestr)
  int writesize;  //to compute number of bytes to be written
  
  //open a syslog connection
- openlog("AESD Assignment 2",LOG_PID,LOG_USER);
+ openlog("AESD Assignment 2", LOG_PID, LOG_USER);
 
  writesize = strlen(writestr);	//calculate size of strings in byte
  
