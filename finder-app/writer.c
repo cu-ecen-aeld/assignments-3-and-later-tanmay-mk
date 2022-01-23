@@ -19,19 +19,23 @@
 #define FILE_PERMISSION	(0644)
 
 /*
+ * @brief	: writes a string to specific file
+ *
+ * @parameters	: [param_in]	
+ *			writefile	: the path of the file
+ *		  	writestr	: the string to be written
+ *
+ * @returns 	: none		
+ */
+static void write_to_file (char* , char*);
+
+/*
  * @brief: application entry point
  */
 int main(int argc, char *argv[]) 
 {
- 
- int writeptr, file;
- 
- int writesize;  //to compute number of bytes to be written
- 
+
  char *writefile, *writestr;	//to store path of file and name of file
- 
- //open a syslog connection
- openlog("AESD Assignment 2",LOG_PID,LOG_USER);
  
  //checking number of inputs
  if (argc < MAX_ARGUMENTS)
@@ -49,18 +53,32 @@ int main(int argc, char *argv[])
  writefile = argv[1]; 		//storing path of file
  writestr = argv[2];		//storing string to be written
  
+ write_to_file(writefile, writestr);
+ 
+ return 0;
+} // end main
+
+static void write_to_file (char* writefile, char* writestr)
+{
+ int writeptr, file;
+ 
+ int writesize;  //to compute number of bytes to be written
+ 
+ //open a syslog connection
+ openlog("AESD Assignment 2",LOG_PID,LOG_USER);
+
  writesize = strlen(writestr);	//calculate size of strings in byte
  
  //create a file
  file=creat(writefile, FILE_PERMISSION);
  
  //check if the file was successfully created
- if (file)
+ if (file != -1)
  {
  	//write the string to the file
  	writeptr = write(file, writestr, writesize);
  	//check whether data was successfully written to the file
- 	if (writeptr)
+ 	if (writeptr != -1)
  	{	
  		//if total bytes written does not match the size of 
  		//string, log the error
@@ -88,6 +106,5 @@ int main(int argc, char *argv[])
  
  //close the syslog connection
  closelog();
- return 0;
-} // end main
+}
 
