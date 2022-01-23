@@ -93,7 +93,7 @@ static void write_to_file (char* writefile, char* writestr)
  	//if data is not successfully written, log the error
  	else
  	{
- 		syslog(LOG_ERR, "%s file cannot be written", writefile);
+ 		syslog(LOG_ERR, "%s file cannot be written to %s", writestr, writefile);
  		exit (1);
  	}
  }
