@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
 static void write_to_file (char* writefile, char* writestr)
 {
- int writeptr, file;
+ int writeptr, file, close_file;
  
  int writesize;  //to compute number of bytes to be written
  
@@ -89,6 +89,16 @@ static void write_to_file (char* writefile, char* writestr)
  		}
  		//else print the success message
  		syslog(LOG_DEBUG, "Writing %s to %s", writestr, writefile);
+ 		
+ 		close_file = close(file);
+ 		if(close_file == -1)
+ 		{
+ 			syslog(LOG_ERR, "Error while closing the file %s", writefile);
+ 		}
+ 		else if (close_file == 0)
+ 		{
+ 			syslog(LOG_DEBUG, "File %s successfully closed", writefile);
+ 		}
  	}
  	//if data is not successfully written, log the error
  	else
