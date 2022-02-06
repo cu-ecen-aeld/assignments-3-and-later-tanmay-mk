@@ -6,7 +6,7 @@
 #		Assignment 3 - Part 2 requirements
 #
 #		Changes made by me are guarded with 
-#		comments with my github username.
+#		comments with my github username. 
 #
 
 set -e
