@@ -56,6 +56,8 @@ OUTPUTSTRING=$(finder.sh "$WRITEDIR" "$WRITESTR")
 #changes for A4-pt2
 echo ${OUTPUTSTRING} > /tmp/assignment-4-result.txt
 
+scp -6 /tmp/assignment-4-result.txt /home/tkot/Desktop/AESD/Assignments/assignment-4-part-1-tanmay-mk/assignments/assignment4
+
 set +e
 echo ${OUTPUTSTRING} | grep "${MATCHSTR}"
 if [ $? -eq 0 ]; then
