@@ -51,6 +51,7 @@ int 	status				= 0;		//variable for checking errors
 char 	*buffer				= NULL;		//pointer to dynamically allocate space
 char 	byte				= 0;		//variable for byte by byte transfer
 struct 	addrinfo *servinfo;				//struct pointer to initialize getaddrinfo
+bool isdaemon = false;
 /*------------------------------------------------------------------------*/
 /*
  * @brief		: 	When a signal is caught during operation,
@@ -95,7 +96,6 @@ int main(int argc, char* argv[])
 	openlog("aesdsocket", LOG_PID, LOG_USER);
 
 	//check for daemon
-	bool isdaemon = false;
 	if (argc >= 2)
     {	
     	//check whether -d is mentioned or not
@@ -121,15 +121,6 @@ int main(int argc, char* argv[])
 			printf("Failed to configure SIGTERM handler\n");
 		#endif
 		exit(EXIT_FAILURE);
-	}
-
-    //check if daemon is required, then run as daemon
-	if (isdaemon)
-	{	
-		//change the process' current working directory
-		//to root directory & redirect STDIN, STDOUT, 
-		//STDERR to /dev/null.
-		daemon(NOCHDIR, NOCLOSE);
 	}
 
 	//handle all socket events
@@ -204,6 +195,16 @@ static int handle_socket()
 	#if DEBUG
 		printf("bind() succeeded\n");
 	#endif	
+	/*------------------------------------------------------------------------*/
+
+	//check if daemon is required, then run as daemon
+	if (isdaemon)
+	{	
+		//change the process' current working directory
+		//to root directory & redirect STDIN, STDOUT, 
+		//STDERR to /dev/null.
+		daemon(NOCHDIR, NOCLOSE);
+	}
 	/*------------------------------------------------------------------------*/
 
 	//create a file
@@ -412,8 +413,13 @@ static int handle_socket()
 			//#endif
 		}
 		/*------------------------------------------------------------------------*/
+
 		close(fd);			//close the open file
 		free(buffer);		//free the allocated memory for the packet
+		syslog(LOG_INFO,"Closed connection with %s\n", inet_ntoa(clientaddr.sin_addr));
+		#if DEBUG
+			printf("Closed connection with %s\n",  inet_ntoa(clientaddr.sin_addr));
+		#endif
 	}
 }
 /*------------------------------------------------------------------------*/
@@ -425,6 +431,7 @@ static void signal_handler(int signal_number)
 		#if DEBUG
 			printf("SIGINT Caught! Exiting ...\n");
 		#endif
+		clear();
 	}
 	else if (signal_number == SIGTERM)
 	{
@@ -432,6 +439,7 @@ static void signal_handler(int signal_number)
 		#if DEBUG
 			printf("SIGTERM Caught! Exiting ...\n");
 		#endif
+		clear();
 	}
 	else
 	{
@@ -439,6 +447,7 @@ static void signal_handler(int signal_number)
 		#if DEBUG
 			printf("Unexpected Signal Caught! Exiting ...\n");
 		#endif
+		clear();
 		exit(EXIT_FAILURE);
 	}
 	exit(EXIT_SUCCESS);
