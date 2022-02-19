@@ -138,6 +138,7 @@ int main(int argc, char* argv[])
 	//if operation is successful, handle_socket() does not return
 	//if it returns, it's an error, perform cleanup and exit
 	clear();
+	return ERROR;
 }
 /*------------------------------------------------------------------------*/
 static int handle_socket()
