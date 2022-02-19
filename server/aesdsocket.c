@@ -50,8 +50,8 @@ int 	packets				= 0;		//size of packet received
 int 	status				= 0;		//variable for checking errors
 char 	*buffer				= NULL;		//pointer to dynamically allocate space
 char 	byte				= 0;		//variable for byte by byte transfer
+bool 	isdaemon 			= false;	//boolean variable to check for daemon
 struct 	addrinfo *servinfo;				//struct pointer to initialize getaddrinfo
-bool isdaemon = false;
 /*------------------------------------------------------------------------*/
 /*
  * @brief		: 	When a signal is caught during operation,
