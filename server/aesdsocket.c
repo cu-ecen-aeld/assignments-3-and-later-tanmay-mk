@@ -203,7 +203,15 @@ static int handle_socket()
 		//change the process' current working directory
 		//to root directory & redirect STDIN, STDOUT, 
 		//STDERR to /dev/null.
-		daemon(NOCHDIR, NOCLOSE);
+		status = daemon(NOCHDIR, NOCLOSE);
+		if (status == ERROR)
+		{
+			syslog(LOG_ERR, "Failed to run as Daemon\n");
+			#if DEBUG
+				printf("Failed to run as a daemon\n");
+			#endif
+			return ERROR;
+		}
 	}
 	/*------------------------------------------------------------------------*/
 
