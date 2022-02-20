@@ -109,6 +109,7 @@ bool start_thread_obtaining_mutex(pthread_t *thread, pthread_mutex_t *mutex,int 
    if (retval != SUCCESS)
    {
       ERROR_LOG("Failed to create thread");
+      free (pthread_params);
       return false;
    }
    DEBUG_LOG("Successfully created thread\n");
