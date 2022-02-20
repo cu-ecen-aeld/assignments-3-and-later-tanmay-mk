@@ -463,9 +463,10 @@ static void signal_handler(int signal_number)
 /*------------------------------------------------------------------------*/
 static void clear ()
 {
+	free(buffer);
 	close (sockfd);
 	close (clientfd); 
-	freeaddrinfo(servinfo); //check here
+	freeaddrinfo(servinfo);
 	unlink(STORAGE_PATH);
 	syslog(LOG_INFO, "Cleared!\n");
 	#if DEBUG
