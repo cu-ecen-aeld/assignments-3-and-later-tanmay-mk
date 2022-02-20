@@ -1,4 +1,12 @@
-#! /bin/sh
+#!/bin/sh
+
+#
+# @file name	: aesdsocket-start-stop.sh
+#
+# @author	: Tanmay Mahendra Kothale
+#
+# @date	: Feb 20, 2022
+#
 
 case "$1" in
     start)	
@@ -17,3 +25,5 @@ case "$1" in
 esac
 
 exit 0
+
+#EOF
