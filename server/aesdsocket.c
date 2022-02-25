@@ -187,7 +187,6 @@ static int handle_socket()
 	hints.ai_family = SOCKET_FAMILY;
 	hints.ai_socktype = SOCKET_TYPE;
 	hints.ai_flags = SOCKET_FLAGS;
-	printf("************************** 1 **************************\n");
 	status = getaddrinfo(NULL, PORT, &hints, &servinfo);
 	if(status != SUCCESS)
 	{
@@ -204,7 +203,6 @@ static int handle_socket()
 	/*------------------------------------------------------------------------*/
 
 	//create a socket
-	printf("************************** 2 **************************\n");
 	sockfd = socket(AF_INET6, SOCK_STREAM, 0);
 	if (sockfd == ERROR)
 	{
@@ -221,7 +219,6 @@ static int handle_socket()
 	/*------------------------------------------------------------------------*/
 
 	//bind
-	printf("************************** 3 **************************\n");
 	status = bind(sockfd, servinfo->ai_addr, servinfo->ai_addrlen);
 	if (status == ERROR)
 	{
@@ -255,7 +252,6 @@ static int handle_socket()
 	}
 	/*------------------------------------------------------------------------*/
 	//create a file
-	printf("************************** 4 **************************\n");
 	int fd = creat(STORAGE_PATH, FILE_PERMISSIONS);
 	if (fd == ERROR)
 	{
@@ -275,7 +271,6 @@ static int handle_socket()
 	interval_timer.it_interval.tv_usec 	= 0;
 	interval_timer.it_value.tv_sec 		= 10; //time expiration of 10 secs
 	interval_timer.it_value.tv_usec 	= 0;
-	printf("************************** 5 **************************\n");
 	status = setitimer(ITIMER_REAL, &interval_timer, NULL);
 	if (status == ERROR)
 	{
@@ -288,10 +283,8 @@ static int handle_socket()
 	/*------------------------------------------------------------------------*/
 	//keep handling packets (listen, accept, receive, write, read, send) unless
 	//interrupted by a signal or an error occurs
-	printf("************************** 6 **************************\n");
 	while (true)
 	{
-		printf("************************** 7 **************************\n");
 		//listen
 		status = listen(sockfd, 5);
 		if(status == ERROR)
@@ -307,7 +300,6 @@ static int handle_socket()
 			printf("listen() succeeded\n");
 		#endif
 		/*------------------------------------------------------------------------*/
-		printf("************************** 8 **************************\n");
 		//accept
 		clientfd = accept (sockfd, (struct sockaddr *)&clientaddr, &sockaddrsize); //check here
 		if (clientfd == ERROR)
@@ -321,14 +313,10 @@ static int handle_socket()
 		printf("************************** 8.01 **************************\n");
 		//print the ip address of the connection
 		inet_ntop(AF_INET6, &(clientaddr.sin_addr),ipv_4,INET_ADDRSTRLEN);
-		printf("************************** 8.1 **************************\n");
 		//Logging the client connection and address
 		syslog(LOG_DEBUG,"Accepting connection from %s",ipv_4);
-		printf("************************** 8.2 **************************\n");
 		printf("Accepting connection from %s\n",ipv_4);
-		printf("************************** 8.3 **************************\n");
 		/*------------------------------------------------------------------------*/
-		printf("************************** 9 **************************\n");
 		datap = (slist_data_t *) malloc(sizeof(slist_data_t));
 		SLIST_INSERT_HEAD(&head,datap,entries);
 
@@ -347,13 +335,11 @@ static int handle_socket()
 
 		SLIST_FOREACH(datap,&head,entries)
 		{
-			printf("************************** 11 **************************\n");
 			pthread_join(datap->thread_params.thread_id,NULL);
 			datap = SLIST_FIRST(&head);
 			SLIST_REMOVE_HEAD(&head, entries);
 			free(datap);
 		}
-		printf("************************** 12 **************************\n");
 		printf("All thread exited!\n");
 		syslog(LOG_DEBUG,"Closed connection from %s",ipv_4);
 		printf("Closed connection from %s\n",ipv_4);
@@ -599,7 +585,6 @@ static void clear ()
 
 static void timer_handler(int signal_number)
 {
-	printf("************************** I HAVE BEEN CALLED **************************\n");
 	int status;
 	char timestr[256];
 	time_t t;
