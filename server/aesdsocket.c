@@ -113,7 +113,6 @@ static void clear();
 static int handle_socket();
 /*------------------------------------------------------------------------*/
 void* thread_handler(void* thread_params);
-void temp_function(void);
 static void timer_handler(int signal_number);
 /*------------------------------------------------------------------------*/
 /*
@@ -218,11 +217,27 @@ static int handle_socket()
 	#endif	
 	/*------------------------------------------------------------------------*/
 
+	status = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
+	if (status == ERROR)
+	{
+		syslog(LOG_ERR, "setsockopt() failed.\n");
+		#if DEBUG
+			printf("setsockopt() failed\n");
+		#endif	
+		return ERROR;
+	}
+	syslog(LOG_INFO, "setsockopt() succeeded!\n");
+	#if DEBUG
+		printf("setsockopt() succeeded\n");
+	#endif	
+	/*------------------------------------------------------------------------*/
+
 	//bind
 	status = bind(sockfd, servinfo->ai_addr, servinfo->ai_addrlen);
 	if (status == ERROR)
 	{
 		syslog(LOG_ERR, "Error Binding\n");
+		syslog(LOG_ERR, "errno: %d\n", errno);
 		#if DEBUG
 			printf("bind() failed\n");
 		#endif
@@ -310,9 +325,8 @@ static int handle_socket()
 			#endif
 			return ERROR;
 		}
-		printf("************************** 8.01 **************************\n");
 		//print the ip address of the connection
-		inet_ntop(AF_INET6, &(clientaddr.sin_addr),ipv_4,INET_ADDRSTRLEN);
+		inet_ntop(AF_INET, &(clientaddr.sin_addr),ipv_4,INET_ADDRSTRLEN);
 		//Logging the client connection and address
 		syslog(LOG_DEBUG,"Accepting connection from %s",ipv_4);
 		printf("Accepting connection from %s\n",ipv_4);
@@ -324,7 +338,6 @@ static int handle_socket()
 		datap->thread_params.clifd = clientfd;
 		datap->thread_params.thread_complete = false;
 		datap->thread_params.mutex = &mutex_lock;
-		printf("************************** 10 **************************\n");
 		pthread_create(&(datap->thread_params.thread_id), 	//the thread id to be created
 						NULL,									//the thread attribute to be passed
 						thread_handler,							//the thread handler to be executed
@@ -345,7 +358,7 @@ static int handle_socket()
 		printf("Closed connection from %s\n",ipv_4);
 	}
 	close(clientfd);
-	//close(sockfd);
+	close(sockfd);
 }
 /*------------------------------------------------------------------------*/
 void* thread_handler(void* thread_params)
@@ -546,7 +559,7 @@ static void signal_handler(int signal_number)
 		#if DEBUG
 			printf("SIGINT Caught! Exiting ...\n");
 		#endif
-		//clear();
+		clear();
 	}
 	else if (signal_number == SIGTERM)
 	{
@@ -554,7 +567,7 @@ static void signal_handler(int signal_number)
 		#if DEBUG
 			printf("SIGTERM Caught! Exiting ...\n");
 		#endif
-		//clear();
+		clear();
 	}
 	else
 	{
@@ -562,7 +575,7 @@ static void signal_handler(int signal_number)
 		#if DEBUG
 			printf("Unexpected Signal Caught! Exiting ...\n");
 		#endif
-		//clear();
+		clear();
 		exit(EXIT_FAILURE);
 	}
 	exit(EXIT_SUCCESS);
@@ -570,7 +583,7 @@ static void signal_handler(int signal_number)
 /*------------------------------------------------------------------------*/
 static void clear ()
 {
-	free(buffer);
+	//free(buffer);
 	close (sockfd);
 	close (clientfd); 
 	freeaddrinfo(servinfo);
