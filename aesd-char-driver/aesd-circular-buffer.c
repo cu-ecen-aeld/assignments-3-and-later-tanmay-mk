@@ -34,7 +34,7 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
     * TODO: implement per description
     */
 
-    openlog("aesd_circular_buffer_find_entry_offset_for_fpos", LOG_PID, LOG_USER);
+    openlog("aesd_circular_buffer_find_entry_offset_for_fpos", LOG_PID, LOG_USER); 
 
     struct aesd_buffer_entry *entryptr;
     int idx, i=-1;
