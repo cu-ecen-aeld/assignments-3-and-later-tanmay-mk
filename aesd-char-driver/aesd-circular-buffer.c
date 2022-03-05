@@ -14,6 +14,7 @@
 #include <string.h>
 #endif
 
+#include <syslog.h>     //for logging
 #include "aesd-circular-buffer.h"
 
 /**
@@ -32,6 +33,40 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
     /**
     * TODO: implement per description
     */
+
+    openlog("aesd_circular_buffer_find_entry_offset_for_fpos", LOG_PID, LOG_USER);
+
+    struct aesd_buffer_entry *entryptr;
+    int idx, i=-1;
+
+    while (++i < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED)
+    {
+        idx = (buffer->out_offs + i) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+
+        entryptr = &(buffer->entry[idx]);
+        if (entryptr == NULL)
+        {
+            syslog(LOG_ERR, "entryptr is NULL\n");
+            closelog();
+            return NULL;
+        }
+
+        if (char_offset < entryptr->size) 
+        {   
+            //offset found
+            *entry_offset_byte_rtn = char_offset;
+            syslog(LOG_INFO, "Offest found, returning...\n");
+            closelog();
+            return entryptr; 
+        }
+        else
+        {
+            char_offset -= entryptr->size;
+        }
+    }
+
+    closelog();
+
     return NULL;
 }
 
@@ -47,6 +82,50 @@ void aesd_circular_buffer_add_entry(struct aesd_circular_buffer *buffer, const s
     /**
     * TODO: implement per description 
     */
+    
+    openlog("aesd_circular_buffer_add_entry", LOG_PID, LOG_USER);
+
+    // check the flag to determine if the buffer is full 
+    if(buffer->full == true)
+    {
+        syslog(LOG_INFO, "Buffer is already full. Overwriting...\n");
+
+        //if buffer is full, overwrite the data
+        buffer->entry[buffer->in_offs] = *(add_entry);
+        //increment both the head and tail
+        buffer->in_offs++;
+        buffer->out_offs++;
+
+        closelog();
+
+        return;
+    }
+
+    //add new entry to the buffer
+    buffer->entry[buffer->in_offs] = *(add_entry);
+    buffer->in_offs++;
+
+    //check if write pointer reached limit, if yes, roll back to 0
+    if(buffer->in_offs == AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED)
+    {
+        buffer->in_offs = 0;
+    }
+
+    //Check if buffer is full after writing
+    if(buffer->in_offs == buffer->out_offs)
+    {
+        syslog(LOG_INFO, "Buffer is full after this operation.\n");
+        //set the flag to true if buffer is full
+        buffer->full = true;
+    }
+    else
+    {   
+        syslog(LOG_INFO, "Buffer is not full after this operation.\n");
+        //set the flag to false if buffer is not full
+        buffer->full = false;
+    }
+
+    closelog();
 }
 
 /**
