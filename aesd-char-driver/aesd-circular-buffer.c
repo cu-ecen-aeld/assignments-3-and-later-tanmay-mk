@@ -46,7 +46,7 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
         entryptr = &(buffer->entry[idx]);
         if (entryptr == NULL)
         {
-            syslog(LOG_ERR, "entryptr is NULL\n");
+            syslog(LOG_ERR, "entryptr is NULL\n"); 
             closelog();
             return NULL;
         }
