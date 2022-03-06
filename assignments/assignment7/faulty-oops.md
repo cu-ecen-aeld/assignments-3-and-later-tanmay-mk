@@ -1,4 +1,4 @@
-##Output after executing 'echo “hello_world” > /dev/faulty' in the qemu instance  
+## Output trace of oops message after executing 'echo “hello_world” > /dev/faulty' in the qemu instance  
   
 Unable to handle kernel NULL pointer dereference at virtual address 0000000000000000  
 Mem abort info:  
@@ -45,4 +45,21 @@ Call trace:
  el0_sync+0x174/0x180  
 Code: d2800001 d2800000 d503233f d50323bf (b900003f)  
 ---[ end trace b2db6f2a75b58db7 ]---  
+
+## Analysis of the oops message  
+  
+The oops messages are generated due to dereferencing of a NULL pointer or when an erroneous pointer value is used. In this particular case, the oops message was generated because an attempt to dereference a NULL pointer was made. This can be observed by looking at the very first line of the oops message: Unable to handle kernel NULL pointer dereference at virtual address 0000000000000000.  
+  
+In Linux, all addressess are virtual addresses that are mapped to physical addresses via page tables. The paging mechanism fails to map the pointer to a physical location when an invalid NULL pointer dereference occurs, resulting in a page fault.  
+  
+The line : 'pc : faulty_write+0x10/0x20 [faulty]'  
+tells us that the page fault originated from faulty_write() method.  
+
+ssize_t faulty_write (struct file *filp, const char __user *buf, size_t count,loff_t *pos)  
+{  
+	/* make a simple fault by dereferencing a NULL pointer */  
+	*(int *)0 = 0;  
+	return 0;  
+}  
+By checking the code in faulty_write method, we see that the code is trying to dereference a NULL pointer of type int. Because of this invalid pointer access, a page fault occurs and the kernel generates an oops message.  
 
