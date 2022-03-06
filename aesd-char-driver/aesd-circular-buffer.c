@@ -1,10 +1,14 @@
 /**
- * @file aesd-circular-buffer.c
- * @brief Functions and data related to a circular buffer imlementation
+ * @file        aesd-circular-buffer.c
+ * @brief       Functions and data related to a circular buffer imlementation
  *
- * @author Dan Walkes
- * @date 2020-03-01
- * @copyright Copyright (c) 2020
+ * @author      Dan Walkes
+ *              - Updated by Tanmay Mahendra Kothale on 5th March 2022
+ *              - Changes for ECEN 5713 Advanced Embedded Software
+ *              Development Assignment 7 Part 1.              
+ * 
+ * @date        2020-03-01
+ * @copyright   Copyright (c) 2020
  *
  */
 
@@ -37,6 +41,7 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
     openlog("aesd_circular_buffer_find_entry_offset_for_fpos", LOG_PID, LOG_USER); 
 
     struct aesd_buffer_entry *entryptr;
+    
     int idx, i=-1;
 
     while (++i < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED)
