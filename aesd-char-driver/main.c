@@ -96,7 +96,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	}
 
 	//find the read entry, and offset for given f_pos
-	read_entry = aesd_circular_buffer_find_entry_offset_for_fpos(&(device->cir_buff), *f_pos, &read_offset); 
+	read_entry = aesd_circular_buffer_find_entry_offset_for_fpos(&(device->circular_buffer), *f_pos, &read_offset); 
 	if(read_entry == NULL)
 	{
 		goto error_cleanup;
@@ -160,11 +160,11 @@ ssize_t aesd_write(struct file *filp, const char __user *buf, size_t count,
 	}
 	
 	//allocate the buffer using kmalloc, store address in buffptr
-	if(device->buff_entry.size == 0)
+	if(device->buffer_entry.size == 0)
 	{
-		device->buff_entry.buffptr = kmalloc(count*sizeof(char), GFP_KERNEL);
+		device->buffer_entry.buffptr = kmalloc(count*sizeof(char), GFP_KERNEL);
 
-		if(device->buff_entry.buffptr == NULL)
+		if(device->buffer_entry.buffptr == NULL)
 		{
 			PDEBUG("kmalloc error");
 			goto exit_cleanup;
@@ -174,9 +174,9 @@ ssize_t aesd_write(struct file *filp, const char __user *buf, size_t count,
 	else
 	{
 
-		device->buff_entry.buffptr = krealloc(device->buff_entry.buffptr, (device->buff_entry.size + count)*sizeof(char), GFP_KERNEL);
+		device->buffer_entry.buffptr = krealloc(device->buffer_entry.buffptr, (device->buffer_entry.size + count)*sizeof(char), GFP_KERNEL);
 
-		if(device->buff_entry.buffptr == NULL)
+		if(device->buffer_entry.buffptr == NULL)
 		{
 			PDEBUG("krealloc error");
 			goto exit_cleanup;
@@ -184,23 +184,23 @@ ssize_t aesd_write(struct file *filp, const char __user *buf, size_t count,
 	}
 
 	//copy data from user space buffer to current command
-	write_data = copy_from_user((void *)(device->buff_entry.buffptr + device->buff_entry.size), 
+	write_data = copy_from_user((void *)(device->buffer_entry.buffptr + device->buffer_entry.size), 
 										buf, count);
 	retval = count - write_data; //actual bytes written
-	device->buff_entry.size += retval;
+	device->buffer_entry.size += retval;
 
 	//Check for \n in command, if found add the entry in circular buffer
-	if(memchr(device->buff_entry.buffptr, '\n', device->buff_entry.size)){
+	if(memchr(device->buffer_entry.buffptr, '\n', device->buffer_entry.size)){
 
-		new_entry = aesd_circular_buffer_add_entry(&device->cir_buff, &device->buff_entry); 
+		new_entry = aesd_circular_buffer_add_entry(&device->circular_buffer, &device->buffer_entry); 
 		if(new_entry){
 			//PDEBUG("trying to free:%p",new_entry);
 			kfree(new_entry);// !doubt about this
 		}
 
 		//clear entry parameters
-		device->buff_entry.buffptr = NULL;
-		device->buff_entry.size = 0;
+		device->buffer_entry.buffptr = NULL;
+		device->buffer_entry.size = 0;
 
 	}
 
@@ -255,7 +255,7 @@ int aesd_init_module(void)
 	 */
 	//Initialize the mutex and circular buffer
 	mutex_init(&aesd_device.lock);
-	aesd_circular_buffer_init(&aesd_device.cir_buff);
+	aesd_circular_buffer_init(&aesd_device.circular_buffer);
 
 	result = aesd_setup_cdev(&aesd_device);
 
@@ -280,11 +280,11 @@ void aesd_cleanup_module(void)
 	/**
 	 * TODO: cleanup AESD specific poritions here as necessary
 	 */
-	//free the buff_entry buffptr
-	kfree(aesd_device.buff_entry.buffptr);
+	//free the buffer_entry buffptr
+	kfree(aesd_device.buffer_entry.buffptr);
 
 	
-	AESD_CIRCULAR_BUFFER_FOREACH(entry, &aesd_device.cir_buff, index){
+	AESD_CIRCULAR_BUFFER_FOREACH(entry, &aesd_device.circular_buffer, index){
 		if(entry->buffptr != NULL)
 		{
 
