@@ -120,7 +120,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	*f_pos += retval;
 
 error_cleanup:
-	mutex_unlock(&(dev->lock));
+	mutex_unlock(&(device->lock));
 	return retval;
 }
 
