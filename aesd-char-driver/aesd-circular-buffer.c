@@ -18,7 +18,6 @@
 #include <string.h>
 #endif
 
-#include <syslog.h>     //for logging
 #include "aesd-circular-buffer.h"
 
 /**
@@ -38,8 +37,6 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
     * TODO: implement per description
     */
 
-    openlog("aesd_circular_buffer_find_entry_offset_for_fpos", LOG_PID, LOG_USER); 
-
     struct aesd_buffer_entry *entryptr;
     
     int idx, i=-1;
@@ -51,8 +48,6 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
         entryptr = &(buffer->entry[idx]);
         if (entryptr == NULL)
         {
-            syslog(LOG_ERR, "entryptr is NULL\n"); 
-            closelog();
             return NULL;
         }
 
@@ -60,8 +55,6 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
         {   
             //offset found
             *entry_offset_byte_rtn = char_offset;
-            syslog(LOG_INFO, "Offest found, returning...\n");
-            closelog();
             return entryptr; 
         }
         else
@@ -69,8 +62,6 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
             char_offset -= entryptr->size;
         }
     }
-
-    closelog();
 
     return NULL;
 }
@@ -90,12 +81,10 @@ const char* aesd_circular_buffer_add_entry(struct aesd_circular_buffer *buffer, 
 
     const char *ptr = NULL;
     
-    openlog("aesd_circular_buffer_add_entry", LOG_PID, LOG_USER);
 
     // check the flag to determine if the buffer is full 
     if((buffer->full == true) && (buffer->in_offs == buffer -> out_offs))
     {
-        syslog(LOG_INFO, "Buffer is already full. Overwriting...\n");
 
         ptr = buffer->entry[buffer->in_offs].buffptr;
 
@@ -126,20 +115,16 @@ const char* aesd_circular_buffer_add_entry(struct aesd_circular_buffer *buffer, 
         //Check if buffer is full after writing
         if(buffer->in_offs == buffer->out_offs)
         {
-            syslog(LOG_INFO, "Buffer is full after this operation.\n");
             //set the flag to true if buffer is full
             buffer->full = true;
         }
         else
         {   
-            syslog(LOG_INFO, "Buffer is not full after this operation.\n");
             //set the flag to false if buffer is not full
             buffer->full = false;
         }
         
     }
-
-    closelog();
 
     return ptr;
 }
