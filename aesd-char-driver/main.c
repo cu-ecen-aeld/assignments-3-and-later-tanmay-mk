@@ -18,7 +18,9 @@
 #include <linux/cdev.h>
 #include <linux/slab.h>
 #include <linux/fs.h> // file_operations
+
 #include "aesdchar.h"
+#include "aesd-circular-buffer.h"
 
 int aesd_major =   0; // use dynamic major
 int aesd_minor =   0;
@@ -87,7 +89,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	}
 	
 	//lock on mutex here, preferrable interruptable, check for error
-	if(mutex_lock_interruptible(&dev->lock))
+	if(mutex_lock_interruptible(&device->lock))
 	{
 		PDEBUG(KERN_ERR "mutex_lock_interruptible error");
 		return -ERESTARTSYS; 
@@ -182,7 +184,7 @@ ssize_t aesd_write(struct file *filp, const char __user *buf, size_t count,
 	}
 
 	//copy data from user space buffer to current command
-	write_data = copy_from_user((void *)(device>buff_entry.buffptr + device->buff_entry.size), 
+	write_data = copy_from_user((void *)(device->buff_entry.buffptr + device->buff_entry.size), 
 										buf, count);
 	retval = count - write_data; //actual bytes written
 	device->buff_entry.size += retval;
