@@ -96,7 +96,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	}
 
 	//find the read entry, and offset for given f_pos
-	read_entry = aesd_circular_buffer_find_entry_offset_for_fpos(&(dev->cir_buff), *f_pos, &read_offset); 
+	read_entry = aesd_circular_buffer_find_entry_offset_for_fpos(&(device->cir_buff), *f_pos, &read_offset); 
 	if(read_entry == NULL)
 	{
 		goto error_cleanup;
