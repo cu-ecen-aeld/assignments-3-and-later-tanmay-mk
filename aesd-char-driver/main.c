@@ -153,7 +153,7 @@ int aesd_init_module(void)
 	aesd_major = MAJOR(dev);
 	if (status < 0) 
 	{
-		PDEBUG(KERN_WARNING "MAJOR failed\n", aesd_major);
+		PDEBUG("MAJOR failed\n", aesd_major);
 		return status;
 	}
 	memset(&aesd_device,0,sizeof(struct aesd_dev));
