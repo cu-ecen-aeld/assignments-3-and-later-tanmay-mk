@@ -78,7 +78,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	status = mutex_lock_interruptible(&(device->lock));
 	if (status != SUCCESS)
 	{
-		PDEBUG (KERN_ERR "mutex_lock_interruptible failed\n");
+		PDEBUG ("mutex_lock_interruptible failed\n");
 	}
 
 	read_entry = aesd_circular_buffer_find_entry_offset_for_fpos(&(device->cbuf), *f_pos, &read_offset);
@@ -106,7 +106,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	*f_pos += retval;
 
 	handle_error:
-		mutex_unlock(&(dev->lock));
+		mutex_unlock(&(device->lock));
 		return retval;
 
 }
@@ -140,7 +140,7 @@ static int aesd_setup_cdev(struct aesd_dev *dev)
 	err = cdev_add (&dev->cdev, devno, 1);
 	if (err) 
 	{
-		PDEBUG(KERN_ERR "cdev_add failed with error code %d\n", err);
+		PDEBUG("cdev_add failed with error code %d\n", err);
 	}
 	return err;
 }
