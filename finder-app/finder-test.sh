@@ -8,7 +8,7 @@ set -u
 NUMFILES=10
 WRITESTR=AELD_IS_FUN
 WRITEDIR=/tmp/aeld-data
-username=$(cat conf/username.txt)
+username=$(cat /etc/finder-app/conf/username.txt)
 
 if [ $# -lt 2 ]
 then
@@ -41,16 +41,37 @@ else
 	exit 1
 fi
 
+#To check if writer is in path
+if [ -z $(which writer) ]
+then 
+	echo Path is empty!
+	exit 1
+fi
+
+#To check if finder.sh is in path
+if [ -z $(which finder.sh) ]
+then 
+	echo Path is empty!
+	exit 1
+fi
+
+
+#For A3 Part 1
 #echo "Removing the old writer utility and compiling as a native application"
 #make clean
 #make
 
 for i in $( seq 1 $NUMFILES)
 do
-	./writer.sh "$WRITEDIR/${username}$i.txt" "$WRITESTR"
+	writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
 done
 
-OUTPUTSTRING=$(./finder.sh "$WRITEDIR" "$WRITESTR")
+OUTPUTSTRING=$(finder.sh "$WRITEDIR" "$WRITESTR")
+
+#changes for A4-pt2
+echo ${OUTPUTSTRING} > /tmp/assignment-4-result.txt
+
+scp -6 /tmp/assignment-4-result.txt /home/tkot/Desktop/AESD/Assignments/assignment-4-part-1-tanmay-mk/assignments/assignment4
 
 set +e
 echo ${OUTPUTSTRING} | grep "${MATCHSTR}"

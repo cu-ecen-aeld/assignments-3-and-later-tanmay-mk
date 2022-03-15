@@ -1,4 +1,29 @@
+/*
+ * @file name		: systemcalls.c
+ * 
+ * @author		: Dan Walkes
+ *			  Tanmay Mahendra Kothale (tanmay-mk)
+ *			  
+ *			  Made the changes required for ECEN 5713 Advanced 
+ *			  Embedded Software Development - Assignment 3 Part 1.
+ *
+ * @date		: 26 January 2022
+ */
+
+
+/*	LIBRARY FILES	*/
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <syslog.h>
+
+/*	OTHER FILES TO BE INCLUDED	*/
 #include "systemcalls.h"
+
+/*	MACROS	*/
+#define FILEMODE 0644
 
 /**
  * @param cmd the command to execute with system()
@@ -11,12 +36,25 @@ bool do_system(const char *cmd)
 {
 
 /*
- * TODO  add your code here
+ * TODO : add your code here
  *  Call the system() function with the command set in the cmd
  *   and return a boolean true if the system() call completed with success 
  *   or false() if it returned a failure
 */
 
+    int returnval;
+    
+    openlog("AESD A3 Part 1 - Do System routine", LOG_PID, LOG_USER);
+
+    returnval = system(cmd);
+    
+    if (returnval == -1)
+    {
+    	syslog(LOG_ERR, "%s : encountered a system error!", __FUNCTION__);
+    	return false;
+    }
+    syslog(LOG_INFO, "%s : System returned successfully!", __FUNCTION__);
+    closelog();
     return true;
 }
 
@@ -58,9 +96,55 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *   
 */
+    
+    int status;
+    pid_t pid;
+
+    openlog("AESD A3 Part 1 - Do exec routine", LOG_PID, LOG_USER);
+
+    pid = fork();
+    
+    if (pid == -1)
+    {
+    	syslog(LOG_ERR, "%s : Forking failed.", __FUNCTION__);
+    	closelog();
+    	return false;
+    }
+    
+    else if (pid == 0) //child process
+    {
+    	syslog(LOG_INFO, "%s : child process created successfully, inside child process with pid %d.", __FUNCTION__, pid);
+    	execv(command[0], command);
+    	//on success, execv does not return, if it returns, 
+    	//an error has occurred
+    	syslog(LOG_ERR, "%s : execv failed", __FUNCTION__);
+    	closelog();
+    	exit(EXIT_FAILURE);
+    }
+    
+    else
+    {
+    	syslog(LOG_INFO, "%s : inside parent process with pid %d.", __FUNCTION__, pid);
+    	if(waitpid(pid,&status,0) == -1)
+    	{
+            syslog(LOG_ERR, "%s : waitpid failed", __FUNCTION__);
+            closelog();
+            return false;
+        }
+        
+        if ( ! (WIFEXITED(status)) 
+        ||    (WEXITSTATUS(status))
+           )
+        {
+            syslog(LOG_ERR, "%s : waitpid failed", __FUNCTION__);
+            closelog();
+            return false;
+        }
+    }
 
     va_end(args);
-
+    syslog(LOG_INFO, "do execv succeeded");
+    closelog();
     return true;
 }
 
@@ -92,8 +176,72 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *   
 */
+    openlog("AESD A3 Part 1 - Do exec redirect routine", LOG_PID, LOG_USER);
+    
+    int status;
+    pid_t pid;
+
+    int fd = open(outputfile, O_WRONLY | O_CREAT | O_TRUNC, FILEMODE);
+    if(fd == -1)
+    {
+        syslog(LOG_ERR, "%s : error while creating and opening file", __FUNCTION__);
+        closelog();
+        return false;
+    }
+
+    pid = fork();
+    
+    if (pid == -1)
+    {
+    	syslog(LOG_ERR, "%s : Forking failed.", __FUNCTION__);
+    	closelog();
+    	return false;
+    }
+    
+    else if (pid == 0) //Child process
+    { 
+	syslog(LOG_INFO, "%s : child process created successfully, inside child process with pid %d.", __FUNCTION__, pid);
+        if(dup2(fd,1) < 0)
+        {
+            syslog(LOG_ERR, "%s : dup2 error occurred", __FUNCTION__);
+            closelog();
+            return false;
+        }
+        
+        close(fd);
+        execv(command[0],command);
+        
+    	//on success, execv does not return, if it returns, 
+    	//an error has occurred
+    	syslog(LOG_ERR, "%s : execv failed", __FUNCTION__);
+    	closelog();
+    	exit(EXIT_FAILURE);
+    }
+    else
+    {
+        close(fd);
+
+    	syslog(LOG_INFO, "%s : inside parent process with pid %d.", __FUNCTION__, pid);
+    	if(waitpid(pid,&status,0) == -1)
+    	{
+            syslog(LOG_ERR, "%s : waitpid failed", __FUNCTION__);
+            closelog();
+            return false;
+        }
+        
+        if ( ! (WIFEXITED(status)) 
+        ||    (WEXITSTATUS(status))
+           )
+        {
+            syslog(LOG_ERR, "%s : waitpid failed", __FUNCTION__);
+            closelog();
+            return false;
+        }
+
+    }
 
     va_end(args);
-    
+    syslog(LOG_INFO, "do execv redirect succeeded");
+    closelog();
     return true;
 }
