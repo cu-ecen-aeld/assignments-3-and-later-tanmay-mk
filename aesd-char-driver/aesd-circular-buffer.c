@@ -5,7 +5,11 @@
  * @author      Dan Walkes
  *              - Updated by Tanmay Mahendra Kothale on 5th March 2022
  *              - Changes for ECEN 5713 Advanced Embedded Software
- *              Development Assignment 7 Part 1.              
+ *                Development Assignment 7 Part 1.  
+ *
+ *              - Updated by Tanmay Mahendra Kothale on 13th March 2022
+ *              - Changes for ECEN 5713 Advanced Embedded Software
+ *                Development Assignment 8.             
  * 
  * @date        2020-03-01
  * @copyright   Copyright (c) 2020
@@ -18,7 +22,6 @@
 #include <string.h>
 #endif
 
-#include <syslog.h>     //for logging
 #include "aesd-circular-buffer.h"
 
 /**
@@ -38,8 +41,6 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
     * TODO: implement per description
     */
 
-    openlog("aesd_circular_buffer_find_entry_offset_for_fpos", LOG_PID, LOG_USER); 
-
     struct aesd_buffer_entry *entryptr;
     
     int idx, i=-1;
@@ -51,8 +52,6 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
         entryptr = &(buffer->entry[idx]);
         if (entryptr == NULL)
         {
-            syslog(LOG_ERR, "entryptr is NULL\n"); 
-            closelog();
             return NULL;
         }
 
@@ -60,8 +59,6 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
         {   
             //offset found
             *entry_offset_byte_rtn = char_offset;
-            syslog(LOG_INFO, "Offest found, returning...\n");
-            closelog();
             return entryptr; 
         }
         else
@@ -69,8 +66,6 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
             char_offset -= entryptr->size;
         }
     }
-
-    closelog();
 
     return NULL;
 }
@@ -82,55 +77,60 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
 * Any necessary locking must be handled by the caller
 * Any memory referenced in @param add_entry must be allocated by and/or must have a lifetime managed by the caller.
 */
-void aesd_circular_buffer_add_entry(struct aesd_circular_buffer *buffer, const struct aesd_buffer_entry *add_entry)
+const char* aesd_circular_buffer_add_entry(struct aesd_circular_buffer *buffer, const struct aesd_buffer_entry *add_entry)
 {
     /**
     * TODO: implement per description 
     */
+
+    const char *ptr = NULL;
     
-    openlog("aesd_circular_buffer_add_entry", LOG_PID, LOG_USER);
 
     // check the flag to determine if the buffer is full 
-    if(buffer->full == true)
+    if((buffer->full == true) && (buffer->in_offs == buffer -> out_offs))
     {
-        syslog(LOG_INFO, "Buffer is already full. Overwriting...\n");
+
+        ptr = buffer->entry[buffer->in_offs].buffptr;
 
         //if buffer is full, overwrite the data
         buffer->entry[buffer->in_offs] = *(add_entry);
-        //increment both the head and tail
-        buffer->in_offs++;
-        buffer->out_offs++;
-
-        closelog();
-
-        return;
+        buffer->in_offs = (buffer->in_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+        //check if write pointer reached limit, if yes, roll back to 0
+        if(buffer->in_offs == AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED)
+        {
+            buffer->in_offs = 0;
+        }
+        buffer->out_offs = buffer->in_offs; 
     }
 
-    //add new entry to the buffer
-    buffer->entry[buffer->in_offs] = *(add_entry);
-    buffer->in_offs++;
-
-    //check if write pointer reached limit, if yes, roll back to 0
-    if(buffer->in_offs == AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED)
-    {
-        buffer->in_offs = 0;
-    }
-
-    //Check if buffer is full after writing
-    if(buffer->in_offs == buffer->out_offs)
-    {
-        syslog(LOG_INFO, "Buffer is full after this operation.\n");
-        //set the flag to true if buffer is full
-        buffer->full = true;
-    }
     else
-    {   
-        syslog(LOG_INFO, "Buffer is not full after this operation.\n");
-        //set the flag to false if buffer is not full
-        buffer->full = false;
+    {
+
+        //add new entry to the buffer
+        buffer->entry[buffer->in_offs] = *(add_entry);
+        buffer->in_offs = (buffer->in_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+
+        //check if write pointer reached limit, if yes, roll back to 0
+        if(buffer->in_offs == AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED)
+        {
+            buffer->in_offs = 0;
+        }
+
+        //Check if buffer is full after writing
+        if(buffer->in_offs == buffer->out_offs)
+        {
+            //set the flag to true if buffer is full
+            buffer->full = true;
+        }
+        else
+        {   
+            //set the flag to false if buffer is not full
+            buffer->full = false;
+        }
+        
     }
 
-    closelog();
+    return ptr;
 }
 
 /**

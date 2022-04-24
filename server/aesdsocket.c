@@ -6,6 +6,9 @@
  * @date 			:	Feb 19, 2022
  						Updated on Feb 27, 2022
  						Changes for Assignment 6 Part 1
+						
+						Updated on Mar 13, 2022
+						Changes for Assignment 8
  */
 /*------------------------------------------------------------------------*/
 /*								LIBRARY FILES							  */
@@ -32,7 +35,6 @@
 /*								MACROS									  */
 /*------------------------------------------------------------------------*/
 
-#define STORAGE_PATH 		"/var/tmp/aesdsocketdata"
 #define PORT 				"9000"
 #define SOCKET_FAMILY 		AF_INET6
 #define SOCKET_TYPE			SOCK_STREAM
@@ -49,6 +51,14 @@
 #define DEBUG				(0) 	//set this to 1 to enable printfs for debug
 #define ERROR				(-1)
 #define SUCCESS				(0)
+
+//For Assignment 8.
+#define USE_AESD_CHAR_DEVICE	(1)
+#if (USE_AESD_CHAR_DEVICE == 1)
+	#define STORAGE_PATH  	"/dev/aesdchar";
+#else
+	#define STORAGE_PATH 	"/var/tmp/aesdsocketdata"
+#endif
 
 /*------------------------------------------------------------------------*/
 /*				GLOBAL STRUCTURES FOR THREAD & SOCKET HANDLING			  */
@@ -106,6 +116,7 @@ static void handle_socket();
  *					error
  */
 void* thread_handler(void* thread_params);
+#if (USE_AESD_CHAR_DEVICE == 0)
 /*------------------------------------------------------------------------*/
 /*
  * @brief		: 	handles the SIGALRM signal every time timer goes off
@@ -115,6 +126,7 @@ void* thread_handler(void* thread_params);
  * @returns		:	none, exits with EXIT_FAILURE on error
  */
 static void sigalrm_handler();
+#endif
 /*------------------------------------------------------------------------*/
 /*
  * @brief		: 	When a signal is caught during operation,
@@ -157,6 +169,8 @@ int main(int argc, char *argv[])
 		#endif
 		exit(EXIT_FAILURE);
 	}
+
+	#if (USE_AESD_CHAR_DEVICE == 0)
 	if(signal(SIGALRM, sigalrm_handler)==SIG_ERR)
 	{
 		syslog(LOG_ERR, "Failed to configure SIGALRM handler\n");
@@ -165,6 +179,7 @@ int main(int argc, char *argv[])
 		#endif
 		exit(EXIT_FAILURE);
 	}
+	#endif
 
 	pthread_mutex_init(&mutex_lock, NULL);
 
@@ -580,6 +595,8 @@ static void signal_handler(int signal_number)
 	exit(EXIT_SUCCESS);
 }
 /*------------------------------------------------------------------------*/
+
+#if (USE_AESD_CHAR_DEVICE==0)
 static void sigalrm_handler()
 {
 	char timestr[200];
@@ -659,5 +676,6 @@ static void sigalrm_handler()
 	}
 	close(fd);
 }
+#endif
 /*EOF*/
 /*------------------------------------------------------------------------*/
